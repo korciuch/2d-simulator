@@ -5,6 +5,7 @@ from typing import List
 from random import random
 from projects.pj02 import constants
 from math import sin, cos, pi
+import numpy as np
 
 
 __author__ = ""  # TODO
@@ -42,7 +43,9 @@ class Cell:
     # Its purpose is to reassign the object's location attribute
     # the result of adding the self object's location with its
     # direction. Hint: Look at the add method.
-        
+    def tick(self):
+        self.location = self.location.add(self.direction)    
+
     def color(self) -> str:
         """Return the color representation of a cell."""
         return "black"
@@ -65,20 +68,37 @@ class Model:
     def tick(self) -> None:
         """Update the state of the simulation by one time step."""
         self.time += 1
+        for cell in self.population:
+            cell.tick()
+            self.enforce_bounds(cell)
 
     def random_location(self) -> Point:
         """Generate a random location."""
-        # TODO
-        return Point(0.0, 0.0)
+        xCoord = float(np.random.randint(constants.MIN_X,constants.MAX_X))
+        yCoord = float(np.random.randint(constants.MIN_Y,constants.MAX_Y))
+        return Point(xCoord, yCoord)
 
     def random_direction(self, speed: float) -> Point:
         """Generate a 'point' used as a directional vector."""
-        # TODO
-        return Point(0.0, 0.0)
+        random_angle = 2.0 * np.pi * np.random.random()
+        dirX = np.cos(random_angle) * speed
+        dirY = np.sin(random_angle) * speed
+        return Point(dirX, dirY)
 
-    def enforce_bounds(self, cell: Cell) -> None:
+    def enforce_bounds(self, cell: Cell):
         """Cause a cell to 'bounce' if it goes out of bounds."""
-        ...
+        if cell.location.x > constants.MAX_X:
+            cell.location.x = constants.MAX_X
+            cell.direction.x *= -1
+        if cell.location.x < constants.MIN_X:
+            cell.location.x = constants.MIN_X
+            cell.direction.x *= -1
+        if cell.location.y > constants.MAX_Y:
+            cell.location.y = constants.MAX_Y
+            cell.direction.y *= -1    
+        if cell.location.y < constants.MIN_Y:
+            cell.location.y = constants.MIN_Y
+            cell.direction.y *= -1 
 
     def is_complete(self) -> bool:
         """Method to indicate when the simulation is complete."""
