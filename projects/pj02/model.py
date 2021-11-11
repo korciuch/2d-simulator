@@ -74,13 +74,14 @@ class Model:
 
     def random_location(self) -> Point:
         """Generate a random location."""
-        xCoord = float(np.random.randint(constants.MIN_X,constants.MAX_X))
-        yCoord = float(np.random.randint(constants.MIN_Y,constants.MAX_Y))
+        xCoord = int(np.random.randint(constants.MIN_X,constants.MAX_X))
+        yCoord = int(np.random.randint(constants.MIN_Y,constants.MAX_Y))
+        print(xCoord,yCoord)
         return Point(xCoord, yCoord)
 
     def random_direction(self, speed: float) -> Point:
         """Generate a 'point' used as a directional vector."""
-        random_angle = 2.0 * np.pi * np.random.random()
+        random_angle = 2.0 * np.pi * np.random.choice([0,0.25,0.5,0.75])
         dirX = np.cos(random_angle) * speed
         dirY = np.sin(random_angle) * speed
         return Point(dirX, dirY)
