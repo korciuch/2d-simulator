@@ -57,6 +57,10 @@ class Model:
     def __init__(self, cells: int, speed: float):
         """Initialize the cells with random locations and directions."""
         self.population = []
+        for _ in range(0, cells):
+            start_loc = self.random_location()
+            start_dir = self.random_direction(speed)
+            self.population.append(Cell(start_loc, start_dir))
     
     def tick(self) -> None:
         """Update the state of the simulation by one time step."""
