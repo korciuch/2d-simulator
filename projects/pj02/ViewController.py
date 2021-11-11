@@ -4,7 +4,7 @@ from turtle import Turtle, Screen, done
 from projects.pj02.model import Model
 from projects.pj02 import constants
 from typing import Any
-from time import time_ns
+from time import time_ns, sleep
 
 
 NS_TO_MS: int = 1000000
@@ -30,8 +30,7 @@ class ViewController:
 
     def start_simulation(self) -> None:
         """Call the first tick of the simulation and begin turtle gfx."""
-        self.initialize_grid()
-        #self.tick()
+        self.tick()
         done()
 
     def initialize_grid(self) -> None:
@@ -43,7 +42,7 @@ class ViewController:
             self.pen.pendown()
             self.pen.goto(x_coord,constants.MAX_Y)
         # ROWS
-        for i in range(0,constants.NUM_ROWS+2):
+        for i in range(0,constants.NUM_ROWS+1):
             y_coord = constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i
             self.pen.penup()
             self.pen.goto(constants.MIN_X,y_coord)
@@ -55,6 +54,8 @@ class ViewController:
         start_time = time_ns() // NS_TO_MS
         self.model.tick()
         self.pen.clear()
+        self.initialize_grid()
+        sleep(1)
         for cell in self.model.population:
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)

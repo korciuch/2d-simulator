@@ -74,8 +74,8 @@ class Model:
 
     def random_location(self) -> Point:
         """Generate a random location."""
-        xCoord = int(np.random.randint(constants.MIN_X,constants.MAX_X))
-        yCoord = int(np.random.randint(constants.MIN_Y,constants.MAX_Y))
+        xCoord = np.random.choice([constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_COLS+1)])
+        yCoord = np.random.choice([constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_ROWS+1)])
         print(xCoord,yCoord)
         return Point(xCoord, yCoord)
 
@@ -88,17 +88,17 @@ class Model:
 
     def enforce_bounds(self, cell: Cell):
         """Cause a cell to 'bounce' if it goes out of bounds."""
-        if cell.location.x > constants.MAX_X:
-            cell.location.x = constants.MAX_X
+        if cell.location.x+constants.CELL_RADIUS/2 > constants.MAX_X:
+            cell.location.x = constants.MAX_X-constants.CELL_RADIUS/2
             cell.direction.x *= -1
-        if cell.location.x < constants.MIN_X:
-            cell.location.x = constants.MIN_X
+        if cell.location.x-constants.CELL_RADIUS/2 < constants.MIN_X:
+            cell.location.x = constants.MIN_X+constants.CELL_RADIUS/2
             cell.direction.x *= -1
-        if cell.location.y > constants.MAX_Y:
-            cell.location.y = constants.MAX_Y
+        if cell.location.y+constants.CELL_RADIUS/2 > constants.MAX_Y:
+            cell.location.y = constants.MAX_Y-constants.CELL_RADIUS/2
             cell.direction.y *= -1    
-        if cell.location.y < constants.MIN_Y:
-            cell.location.y = constants.MIN_Y
+        if cell.location.y-constants.CELL_RADIUS/2 < constants.MIN_Y:
+            cell.location.y = constants.MIN_Y+constants.CELL_RADIUS/2
             cell.direction.y *= -1 
 
     def is_complete(self) -> bool:
