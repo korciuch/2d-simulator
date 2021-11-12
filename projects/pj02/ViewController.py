@@ -1,5 +1,6 @@
 """The ViewController drives the visualization of the simulation.""" 
 
+from math import cos
 import numpy as np
 from turtle import Turtle, Screen, color, done
 from projects.pj02.model import Model, Point
@@ -70,11 +71,39 @@ class ViewController:
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         for c in range(0,constants.NUM_COLS):
             for r in range(0,constants.NUM_ROWS):
-                #c = tuple(np.random.random_integers(1,255,size=3))
                 color = self.model.color_grid[r,c]
                 delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS * c
                 delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS * r
                 fill_square(upper_left.x+delta_x,upper_left.y-delta_y,color)
+
+    def draw_los(self, cell_x, cell_y, depth, origin_cell) -> None:
+        print("COORD: ", cell_x, cell_y)
+        
+        def in_bounds(x, y) -> bool:
+            if x < constants.MIN_X or x > constants.MAX_X: return False
+            elif y < constants.MIN_Y or y > constants.MAX_Y: return False
+            else: return True
+
+        """def detect(x, y, origin_cell) -> bool:
+            for cell in self.model.population:
+                if cell != origin_cell and x == cell.location.x and y == cell.location.y:
+                    return True
+            return False"""
+
+        def draw_line(rad):
+            #delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS
+            #delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS
+            self.pen.penup()
+            self.pen.goto(cell_x,cell_y)
+            self.pen.pendown()
+            for d in range(depth,0,-1):
+                x_new = cell_x + np.cos(rad) * constants.CELL_RADIUS * d
+                y_new = cell_y + np.sin(rad) * constants.CELL_RADIUS * d
+                if not in_bounds(x_new, y_new): continue
+                self.pen.goto(x_new, y_new)
+
+        for coeff in self.model.sensor_angles:
+            draw_line(coeff * 2.0 * np.pi)
 
     def tick(self) -> None:
         """Update the model state and redraw visualization."""
@@ -84,14 +113,23 @@ class ViewController:
         self.initialize_grid()
         self.fill_grid()
         #sleep(1)
-        for cell in self.model.population:
+        for cell in self.model.population[:int(constants.CELL_COUNT/2)]:
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
-            self.pen.color(cell.color())
-            self.pen.dot(constants.CELL_RADIUS-5)
+            #self.pen.color(cell.color())
+            self.pen.color('black')
+            self.pen.dot(constants.CELL_RADIUS/2)
+            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
+        for cell in self.model.population[int(constants.CELL_COUNT/2):]:
+            self.pen.penup()
+            self.pen.goto(cell.location.x, cell.location.y)
+            self.pen.pendown()
+            #self.pen.color(cell.color())
+            self.pen.color('white')
+            self.pen.dot(constants.CELL_RADIUS/2)
+            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
         self.screen.update()
-
         if self.model.is_complete():
             return
         else:

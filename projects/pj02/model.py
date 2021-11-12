@@ -57,7 +57,8 @@ class Model:
     population: List[Cell]
     time: int = 0
     # PERSISTENT GRID
-    color_grid = np.asarray([np.asarray([tuple(np.random.random_integers(1,255,size=3)) for j in range(0,constants.NUM_COLS)]) for i in range(0,constants.NUM_ROWS)])
+    color_grid = np.asarray([np.asarray([tuple(np.random.random_integers(150,255,size=3)) for j in range(0,constants.NUM_COLS)]) for i in range(0,constants.NUM_ROWS)])
+    sensor_angles = [0,0.125,0.25,0.375,0.5,0.625,0.75,0.875]
 
     def __init__(self, cells: int, speed: float):
         """Initialize the cells with random locations and directions."""
