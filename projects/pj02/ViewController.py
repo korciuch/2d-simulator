@@ -36,21 +36,22 @@ class ViewController:
 
     def initialize_grid(self) -> None:
         # COLUMNS
-        for i in range(0,constants.NUM_COLS+1):
-            x_coord = constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * i
+        for c in range(0,constants.NUM_COLS+1):
+            x_coord = constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * c
             self.pen.penup()
             self.pen.goto(x_coord, constants.MIN_Y)
             self.pen.pendown()
             self.pen.goto(x_coord,constants.MAX_Y)
         # ROWS
-        for i in range(0,constants.NUM_ROWS+1):
-            y_coord = constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i
+        for r in range(0,constants.NUM_ROWS+1):
+            y_coord = constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * r
             self.pen.penup()
             self.pen.goto(constants.MIN_X,y_coord)
             self.pen.pendown()
             self.pen.goto(constants.MAX_X,y_coord)
 
     def fill_grid(self) -> None:
+
         def fill_square(x_start,y_start,c):
             delta_x = constants.BOUNDS_HEIGHT / constants.NUM_COLS
             delta_y = constants.BOUNDS_WIDTH / constants.NUM_ROWS
@@ -64,14 +65,16 @@ class ViewController:
             self.pen.goto(x_start+delta_x,y_start)
             self.pen.goto(x_start,y_start)
             self.pen.end_fill()
+
         self.screen.colormode(255)
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
-        for i in range(0,constants.NUM_COLS):
-            for j in range(0,constants.NUM_ROWS):
-                c = tuple(np.random.random_integers(1,255,size=3))
-                delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS * i
-                delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS * j
-                fill_square(upper_left.x+delta_x,upper_left.y-delta_y,c)
+        for c in range(0,constants.NUM_COLS):
+            for r in range(0,constants.NUM_ROWS):
+                #c = tuple(np.random.random_integers(1,255,size=3))
+                color = self.model.color_grid[r,c]
+                delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS * c
+                delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS * r
+                fill_square(upper_left.x+delta_x,upper_left.y-delta_y,color)
 
     def tick(self) -> None:
         """Update the model state and redraw visualization."""
@@ -80,7 +83,7 @@ class ViewController:
         self.pen.clear()
         self.initialize_grid()
         self.fill_grid()
-        sleep(1)
+        #sleep(1)
         for cell in self.model.population:
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
