@@ -6,8 +6,8 @@ ACTIONS = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
 
 def create_reward_matrix(create_new):
     r = None
-    m_rows = 50
-    n_columns = 50
+    m_rows = 25
+    n_columns = 25
     ss = (m_rows-1,0)
     es = (0,n_columns-1)
     if create_new:
@@ -64,4 +64,4 @@ def load_policy(src_file):
 if __name__ == "__main__":
     r = create_reward_matrix(create_new=True)
     print(r)
-    explore(reward_matrix=r,n_samples=100000)
+    explore(reward_matrix=r,n_samples=10000)

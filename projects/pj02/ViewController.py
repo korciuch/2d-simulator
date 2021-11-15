@@ -115,28 +115,39 @@ class ViewController:
             draw_line(coeff * 2.0 * np.pi)
 
     def tick(self) -> None:
-        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),200,200)) if self.model.r[m,n] < 0 else tuple((200,int(self.model.r[m,n]/np.max(self.model.r)*127+128),200)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
         #print(reward_cmap)
         #print(self.model.policies)
         #reward_cmap[self.model.start_state] = tuple((255,255,255))
         #reward_cmap[self.model.end_state] = tuple((0,0,0))
         """Update the model state and redraw visualization."""
         start_time = time_ns() // NS_TO_MS
+        self.pen.color('black')
+        self.pen.width(1)
         self.model.tick()
         self.pen.clear()
         self.initialize_grid()
         self.fill_grid(reward_cmap)
-        sleep(1)
-        """for cell in self.model.population:
+        for cell in self.model.population[1:]:
+            self.pen.penup()
+            self.pen.goto(cell.location.x, cell.location.y)
+            self.pen.pendown()
+            self.pen.color(cell.color())
+            self.pen.color('white')
+            self.pen.width(3)
+            self.pen.dot(constants.CELL_RADIUS/2)
+            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
+        for cell in self.model.population[:1]:
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             self.pen.color(cell.color())
             self.pen.color('black')
+            self.pen.width(3)
             self.pen.dot(constants.CELL_RADIUS/2)
-            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)"""
+            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
+        sleep(1)
         self.screen.update()
-        sleep(100)
         if self.model.is_complete():
             return
         else:
