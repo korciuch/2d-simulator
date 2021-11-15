@@ -10,8 +10,8 @@ MAX_Y: float = BOUNDS_HEIGHT / 2
 MIN_Y: float = -MAX_Y
 VIEW_HEIGHT: int = BOUNDS_HEIGHT + 20
 
-NUM_ROWS: int = 25
-NUM_COLS: int = 25
+NUM_ROWS: int = 50
+NUM_COLS: int = 50
 
 CELL_RADIUS: int = BOUNDS_HEIGHT / NUM_ROWS
 CELL_COUNT: int = 10

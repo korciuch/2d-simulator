@@ -1,11 +1,13 @@
 """The model classes maintain the state and logic of the simulation."""
 
 from __future__ import annotations
+from simulation import create_reward_matrix, load_policy
 from typing import List
 from random import random
 from projects.pj02 import constants
 from math import sin, cos, pi
 import numpy as np
+
 
 
 __author__ = ""  # TODO
@@ -57,8 +59,14 @@ class Model:
     population: List[Cell]
     time: int = 0
     # PERSISTENT GRID
-    color_grid = np.asarray([np.asarray([tuple(np.random.random_integers(150,255,size=3)) for j in range(0,constants.NUM_COLS)]) for i in range(0,constants.NUM_ROWS)])
+    #color_grid = np.asarray([np.asarray([tuple(np.random.random_integers(150,255,size=3)) for j in range(0,constants.NUM_COLS)]) for i in range(0,constants.NUM_ROWS)])
+    r = create_reward_matrix(create_new=False)
+    actions = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
+    policies = load_policy(src_file='sim.policy')
     sensor_angles = [0,0.125,0.25,0.375,0.5,0.625,0.75,0.875]
+    start_state = (constants.NUM_ROWS-1,0)
+    end_state = (0,constants.NUM_COLS-1)
+
 
     def __init__(self, cells: int, speed: float):
         """Initialize the cells with random locations and directions."""

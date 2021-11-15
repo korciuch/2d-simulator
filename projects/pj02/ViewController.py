@@ -51,7 +51,7 @@ class ViewController:
             self.pen.pendown()
             self.pen.goto(constants.MAX_X,y_coord)
 
-    def fill_grid(self) -> None:
+    def fill_grid(self, r_cmap) -> None:
 
         def fill_square(x_start,y_start,c):
             delta_x = constants.BOUNDS_HEIGHT / constants.NUM_COLS
@@ -67,14 +67,23 @@ class ViewController:
             self.pen.goto(x_start,y_start)
             self.pen.end_fill()
 
+        def draw_policy(x_start,y_start,unraveled_index):
+            action_index = self.model.policies[unraveled_index] - 1
+            #print(action_index)
+            self.pen.penup()
+            self.pen.goto(x_start,y_start)
+            self.pen.pendown()
+            self.pen.dot(constants.CELL_RADIUS/16)
+            self.pen.goto(x_start+self.model.actions[action_index][1]*constants.CELL_RADIUS/4,y_start-self.model.actions[action_index][0]*constants.CELL_RADIUS/4)
         self.screen.colormode(255)
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         for c in range(0,constants.NUM_COLS):
             for r in range(0,constants.NUM_ROWS):
-                color = self.model.color_grid[r,c]
+                color = r_cmap[r,c]
                 delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS * c
                 delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS * r
                 fill_square(upper_left.x+delta_x,upper_left.y-delta_y,color)
+                draw_policy(upper_left.x+delta_x+constants.CELL_RADIUS/2,upper_left.y-delta_y-constants.CELL_RADIUS/2, np.ravel_multi_index((r,c),(constants.NUM_ROWS,constants.NUM_COLS)))
 
     def draw_los(self, cell_x, cell_y, depth, origin_cell) -> None:
         print("COORD: ", cell_x, cell_y)
@@ -106,22 +115,28 @@ class ViewController:
             draw_line(coeff * 2.0 * np.pi)
 
     def tick(self) -> None:
+        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+        #print(reward_cmap)
+        #print(self.model.policies)
+        #reward_cmap[self.model.start_state] = tuple((255,255,255))
+        #reward_cmap[self.model.end_state] = tuple((0,0,0))
         """Update the model state and redraw visualization."""
         start_time = time_ns() // NS_TO_MS
         self.model.tick()
         self.pen.clear()
         self.initialize_grid()
-        self.fill_grid()
-        #sleep(1)
-        for cell in self.model.population:
+        self.fill_grid(reward_cmap)
+        sleep(1)
+        """for cell in self.model.population:
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
-            #self.pen.color(cell.color())
+            self.pen.color(cell.color())
             self.pen.color('black')
             self.pen.dot(constants.CELL_RADIUS/2)
-            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
+            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)"""
         self.screen.update()
+        sleep(100)
         if self.model.is_complete():
             return
         else:
