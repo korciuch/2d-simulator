@@ -113,20 +113,12 @@ class ViewController:
         self.initialize_grid()
         self.fill_grid()
         #sleep(1)
-        for cell in self.model.population[:int(constants.CELL_COUNT/2)]:
+        for cell in self.model.population:
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             #self.pen.color(cell.color())
             self.pen.color('black')
-            self.pen.dot(constants.CELL_RADIUS/2)
-            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
-        for cell in self.model.population[int(constants.CELL_COUNT/2):]:
-            self.pen.penup()
-            self.pen.goto(cell.location.x, cell.location.y)
-            self.pen.pendown()
-            #self.pen.color(cell.color())
-            self.pen.color('white')
             self.pen.dot(constants.CELL_RADIUS/2)
             self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
         self.screen.update()
