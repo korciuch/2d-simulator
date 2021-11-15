@@ -25,7 +25,7 @@ def load_samples(infile):
 def compute(infile,outfile):
     D = load_samples(infile)
     D[:,REWARD] = np.add(D[:,REWARD],1)
-    Q = q_learning(data=D,alpha=0.5,gamma=0.95)
+    Q = q_learning(data=D, alpha=0.5, gamma=0.95)
     export_policy(matrix=Q,output=outfile,offset=1)
 
 def q_learning(data, alpha, gamma):
@@ -34,10 +34,11 @@ def q_learning(data, alpha, gamma):
     ii64 = np.iinfo(np.int64)
     Q.fill(ii64.min)
     for e in range(0,NUM_EPOCHS):
-        learning_rate = alpha * ((NUM_EPOCHS - e) / NUM_EPOCHS)**2
+        learning_rate = 1/(e + 1)
+        #learning_rate = alpha * ((NUM_EPOCHS - e) / NUM_EPOCHS)**2
         for s in data:
             Q[s[STATE],s[ACTION]] += learning_rate * (s[REWARD] + gamma * np.max(Q[s[NEW_STATE],:]) - Q[s[STATE],s[ACTION]])
-    print(Q)
+    #print(Q)
     return Q
 
 def export_policy(matrix,output,offset):
