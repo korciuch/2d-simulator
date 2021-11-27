@@ -8,3 +8,5 @@ reinforcement learning proof of concept
 ### For active development:  
 > $ conda activate sim_env
 
+### To run simulator:
+> $ python3 -m projects.pj02 
