@@ -8,10 +8,7 @@ from projects.pj02 import constants
 from math import sin, cos, pi
 import numpy as np
 
-
-
 __author__ = ""  # TODO
-
 
 class Point:
     """A model of a 2-d cartesian coordinate Point."""
@@ -28,7 +25,6 @@ class Point:
         x: float = self.x + other.x
         y: float = self.y + other.y
         return Point(x, y)
-
 
 class Cell:
     """An individual subject in the simulation."""
@@ -48,14 +44,11 @@ class Cell:
         """Return the color representation of a cell."""
         return "black"
 
-
 class Model:
     """The state of the simulation."""
 
     population: List[Cell]
     time: int = 0
-    # PERSISTENT GRID
-    #color_grid = np.asarray([np.asarray([tuple(np.random.random_integers(150,255,size=3)) for j in range(0,constants.NUM_COLS)]) for i in range(0,constants.NUM_ROWS)])
     r = create_reward_matrix(create_new=False)
     actions = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
     angles = [0.75,0.25,0.5,0]
@@ -63,7 +56,6 @@ class Model:
     sensor_angles = np.asarray(np.linspace(0,1,17))
     start_state = (constants.NUM_ROWS-1,0)
     end_state = (0,constants.NUM_COLS-1)
-    sensor_domain = []
 
     def __init__(self, cells: int, speed: float):
         """Initialize the cells with random locations and directions."""
@@ -111,17 +103,12 @@ class Model:
 
     def follow_offline_policiy(self, cell):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
-        #print(upper_left.x,upper_left.y)
-        
         policy_index = self.find_grid_pos(upper_left,cell,True)
-        #print(policy_index)
         ravel_index = np.ravel_multi_index(policy_index,(constants.NUM_ROWS,constants.NUM_COLS))
         action = self.policies[ravel_index]
         angle = self.angles[action-1]*2.0*np.pi
-        #print('angle: ', angle)
         x_dir = np.cos(angle) * constants.CELL_SPEED
         y_dir = np.sin(angle) * constants.CELL_SPEED
-        #print('x/y components: ', (x_dir, y_dir))
         cell.direction.x = x_dir
         cell.direction.y = y_dir
 

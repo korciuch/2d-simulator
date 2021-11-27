@@ -8,9 +8,7 @@ from projects.pj02 import constants
 from typing import Any
 from time import time_ns, sleep
 
-
 NS_TO_MS: int = 1000000
-
 
 class ViewController:
     """This class is responsible for controlling the simulation and visualizing it."""
@@ -69,7 +67,6 @@ class ViewController:
 
         def draw_policy(x_start,y_start,unraveled_index):
             action_index = self.model.policies[unraveled_index] - 1
-            #print(action_index)
             self.pen.penup()
             self.pen.goto(x_start,y_start)
             self.pen.pendown()
@@ -111,6 +108,7 @@ class ViewController:
                 if not in_bounds(x_new, y_new) or grid_pos == origin: continue
                 adjacency_set.add(tuple((grid_pos,1/(calculate_penalty(grid_pos)+0.001))))
                 self.pen.goto(x_new, y_new)
+        
         for coeff in self.model.sensor_angles:
             draw_line(coeff * 2.0 * np.pi)
         print(sorted(adjacency_set,key=lambda x:x[0],reverse=False))
@@ -119,10 +117,11 @@ class ViewController:
         for grid_pos in adjacency_set:
             x_sq = constants.MIN_X + grid_pos[0][1] * constants.CELL_RADIUS 
             y_sq = constants.MAX_Y - grid_pos[0][0] * constants.CELL_RADIUS
-            #print(calculate_penalty(grid_pos))
             val = int(grid_pos[1]/max_val*255)
             if is_adversary:
                 self.fill_square(x_sq,y_sq,tuple((val,0,0)))
+            else:
+                self.fill_square(x_sq,y_sq,tuple((0,val,0)))
 
     def tick(self) -> None:
         reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
@@ -141,19 +140,19 @@ class ViewController:
             self.pen.pendown()
             self.pen.color(cell.color())
             self.pen.color('black')
-            self.pen.width(3)
+            #self.pen.width(3)
             self.pen.dot(constants.CELL_RADIUS/2)
             self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=True, cmap=reward_cmap)
         # MAIN AGENT UPDATE
         for cell in self.model.population[:1]:
-            self.pen.color('white')
+            self.pen.color('black')
             self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=False, cmap=reward_cmap)
             self.model.follow_offline_policiy(cell)
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             #self.pen.color(cell.color())
-            self.pen.width(3)
+            #self.pen.width(3)
             self.pen.dot(constants.CELL_RADIUS/2)
         self.screen.update()
         #sleep(1)
