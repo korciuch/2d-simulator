@@ -1,5 +1,5 @@
-# aa228 status update
-reinforcement learning proof of concept
+# aa228 final project
+q-learning + forward search
 
 ## Use and Development
 ### Create Conda environment:
