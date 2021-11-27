@@ -11,7 +11,7 @@ def create_reward_matrix(create_new):
     ss = (m_rows-1,0)
     es = (0,n_columns-1)
     if create_new:
-        r = np.random.randint(-500,500,size=((m_rows,n_columns)))
+        r = np.random.randint(-100,100,size=((m_rows,n_columns)))
         r[es] = END_REWARD
         r[ss] = START_REWARD
         # export reward matrix

@@ -1,9 +1,6 @@
 import csv
 import sys
 import numpy as np
-import pandas as pd
-
-from collections import defaultdict
 
 STATE = 0
 ACTION = 1
@@ -34,8 +31,8 @@ def q_learning(data, alpha, gamma):
     ii64 = np.iinfo(np.int64)
     Q.fill(ii64.min)
     for e in range(0,NUM_EPOCHS):
-        learning_rate = 1/(e + 1)
-        #learning_rate = alpha * ((NUM_EPOCHS - e) / NUM_EPOCHS)**2
+        print(e)
+        learning_rate = alpha * ((NUM_EPOCHS - e) / NUM_EPOCHS)**2
         for s in data:
             Q[s[STATE],s[ACTION]] += learning_rate * (s[REWARD] + gamma * np.max(Q[s[NEW_STATE],:]) - Q[s[STATE],s[ACTION]])
     #print(Q)

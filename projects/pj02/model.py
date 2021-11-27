@@ -58,11 +58,12 @@ class Model:
     #color_grid = np.asarray([np.asarray([tuple(np.random.random_integers(150,255,size=3)) for j in range(0,constants.NUM_COLS)]) for i in range(0,constants.NUM_ROWS)])
     r = create_reward_matrix(create_new=False)
     actions = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
+    angles = [0.75,0.25,0.5,0]
     policies = load_policy(src_file='sim.policy')
-    sensor_angles = [0,0.125,0.25,0.375,0.5,0.625,0.75,0.875]
+    sensor_angles = np.asarray(np.linspace(0,1,17))
     start_state = (constants.NUM_ROWS-1,0)
     end_state = (0,constants.NUM_COLS-1)
-
+    sensor_domain = []
 
     def __init__(self, cells: int, speed: float):
         """Initialize the cells with random locations and directions."""
@@ -83,7 +84,7 @@ class Model:
         """Generate a random location."""
         xCoord = np.random.choice([constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_COLS+1)])
         yCoord = np.random.choice([constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_ROWS+1)])
-        print(xCoord,yCoord)
+        print('RANDOM_LOCATION: ', (xCoord,yCoord))
         return Point(xCoord, yCoord)
 
     def random_direction(self, speed: float) -> Point:
@@ -108,6 +109,31 @@ class Model:
             cell.location.y = constants.MIN_Y+constants.CELL_RADIUS/2
             cell.direction.y *= -1 
 
-    def is_complete(self) -> bool:
+    def follow_offline_policiy(self, cell):
+        upper_left = Point(constants.MIN_X,constants.MAX_Y)
+        #print(upper_left.x,upper_left.y)
+        
+        policy_index = self.find_grid_pos(upper_left,cell,True)
+        #print(policy_index)
+        ravel_index = np.ravel_multi_index(policy_index,(constants.NUM_ROWS,constants.NUM_COLS))
+        action = self.policies[ravel_index]
+        angle = self.angles[action-1]*2.0*np.pi
+        #print('angle: ', angle)
+        x_dir = np.cos(angle) * constants.CELL_SPEED
+        y_dir = np.sin(angle) * constants.CELL_SPEED
+        #print('x/y components: ', (x_dir, y_dir))
+        cell.direction.x = x_dir
+        cell.direction.y = y_dir
+
+    def find_grid_pos(self,upper_left,cell,is_structured):
+        offset = constants.CELL_RADIUS/2 if is_structured else 0
+        r = abs((upper_left.y-cell.location.y + offset)/constants.CELL_RADIUS)-1
+        c = abs((upper_left.x-cell.location.x - offset)/constants.CELL_RADIUS)-1
+        return (round(r),round(c))
+
+    def is_complete(self,cell) -> bool:
         """Method to indicate when the simulation is complete."""
-        return False
+        upper_left = Point(constants.MIN_X,constants.MAX_Y)
+        grid_pos = self.find_grid_pos(upper_left,cell,True)
+        if grid_pos == constants.END_STATE: return True
+        else: return False

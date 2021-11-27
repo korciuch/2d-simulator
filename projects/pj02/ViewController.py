@@ -3,7 +3,7 @@
 from math import cos
 import numpy as np
 from turtle import Turtle, Screen, color, done
-from projects.pj02.model import Model, Point
+from projects.pj02.model import Cell, Model, Point
 from projects.pj02 import constants
 from typing import Any
 from time import time_ns, sleep
@@ -51,9 +51,7 @@ class ViewController:
             self.pen.pendown()
             self.pen.goto(constants.MAX_X,y_coord)
 
-    def fill_grid(self, r_cmap) -> None:
-
-        def fill_square(x_start,y_start,c):
+    def fill_square(self,x_start,y_start,c):
             delta_x = constants.BOUNDS_HEIGHT / constants.NUM_COLS
             delta_y = constants.BOUNDS_WIDTH / constants.NUM_ROWS
             self.pen.penup()
@@ -67,6 +65,8 @@ class ViewController:
             self.pen.goto(x_start,y_start)
             self.pen.end_fill()
 
+    def fill_grid(self, r_cmap) -> None:
+
         def draw_policy(x_start,y_start,unraveled_index):
             action_index = self.model.policies[unraveled_index] - 1
             #print(action_index)
@@ -75,6 +75,7 @@ class ViewController:
             self.pen.pendown()
             self.pen.dot(constants.CELL_RADIUS/16)
             self.pen.goto(x_start+self.model.actions[action_index][1]*constants.CELL_RADIUS/4,y_start-self.model.actions[action_index][0]*constants.CELL_RADIUS/4)
+
         self.screen.colormode(255)
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         for c in range(0,constants.NUM_COLS):
@@ -82,44 +83,49 @@ class ViewController:
                 color = r_cmap[r,c]
                 delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS * c
                 delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS * r
-                fill_square(upper_left.x+delta_x,upper_left.y-delta_y,color)
+                self.fill_square(upper_left.x+delta_x,upper_left.y-delta_y,color)
                 draw_policy(upper_left.x+delta_x+constants.CELL_RADIUS/2,upper_left.y-delta_y-constants.CELL_RADIUS/2, np.ravel_multi_index((r,c),(constants.NUM_ROWS,constants.NUM_COLS)))
 
-    def draw_los(self, cell_x, cell_y, depth, origin_cell) -> None:
-        print("COORD: ", cell_x, cell_y)
-        
+    def draw_los(self, cell_x, cell_y, depth, origin_cell, is_adversary, cmap):
+        upper_left = Point(constants.MIN_X,constants.MAX_Y)
+        origin = self.model.find_grid_pos(upper_left,origin_cell,True)
+        print("ORIGIN:", origin)
         def in_bounds(x, y) -> bool:
-            if x < constants.MIN_X or x > constants.MAX_X: return False
-            elif y < constants.MIN_Y or y > constants.MAX_Y: return False
+            if x <= constants.MIN_X or x >= constants.MAX_X: return False
+            elif y <= constants.MIN_Y or y >= constants.MAX_Y: return False
             else: return True
 
-        """def detect(x, y, origin_cell) -> bool:
-            for cell in self.model.population:
-                if cell != origin_cell and x == cell.location.x and y == cell.location.y:
-                    return True
-            return False"""
+        def calculate_penalty(adjacent):
+            l2_dist = (abs(adjacent[0]-origin[0])**2 + abs(adjacent[1]-origin[1])**2)**1/2
+            return l2_dist
 
+        adjacency_set = set()
         def draw_line(rad):
-            #delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS
-            #delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS
             self.pen.penup()
             self.pen.goto(cell_x,cell_y)
             self.pen.pendown()
-            for d in range(depth,0,-1):
-                x_new = cell_x + np.cos(rad) * constants.CELL_RADIUS * d
-                y_new = cell_y + np.sin(rad) * constants.CELL_RADIUS * d
-                if not in_bounds(x_new, y_new): continue
+            for d1 in list(np.linspace(depth,0,17)):
+                x_new = cell_x + np.cos(rad) * constants.CELL_RADIUS * d1
+                y_new = cell_y + np.sin(rad) * constants.CELL_RADIUS * d1
+                grid_pos = self.model.find_grid_pos(upper_left,Cell(Point(x_new,y_new),Point(0,0)),True)
+                if not in_bounds(x_new, y_new) or grid_pos == origin: continue
+                adjacency_set.add(tuple((grid_pos,1/(calculate_penalty(grid_pos)+0.001))))
                 self.pen.goto(x_new, y_new)
-
         for coeff in self.model.sensor_angles:
             draw_line(coeff * 2.0 * np.pi)
+        print(sorted(adjacency_set,key=lambda x:x[0],reverse=False))
+        max_val = max(adjacency_set,key=lambda x:x[1])[1]
+        print(max_val)
+        for grid_pos in adjacency_set:
+            x_sq = constants.MIN_X + grid_pos[0][1] * constants.CELL_RADIUS 
+            y_sq = constants.MAX_Y - grid_pos[0][0] * constants.CELL_RADIUS
+            #print(calculate_penalty(grid_pos))
+            val = int(grid_pos[1]/max_val*255)
+            if is_adversary:
+                self.fill_square(x_sq,y_sq,tuple((val,0,0)))
 
     def tick(self) -> None:
-        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),200,200)) if self.model.r[m,n] < 0 else tuple((200,int(self.model.r[m,n]/np.max(self.model.r)*127+128),200)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
-        #print(reward_cmap)
-        #print(self.model.policies)
-        #reward_cmap[self.model.start_state] = tuple((255,255,255))
-        #reward_cmap[self.model.end_state] = tuple((0,0,0))
+        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
         """Update the model state and redraw visualization."""
         start_time = time_ns() // NS_TO_MS
         self.pen.color('black')
@@ -128,16 +134,8 @@ class ViewController:
         self.pen.clear()
         self.initialize_grid()
         self.fill_grid(reward_cmap)
+        # ADVERSARY UPDATES
         for cell in self.model.population[1:]:
-            self.pen.penup()
-            self.pen.goto(cell.location.x, cell.location.y)
-            self.pen.pendown()
-            self.pen.color(cell.color())
-            self.pen.color('white')
-            self.pen.width(3)
-            self.pen.dot(constants.CELL_RADIUS/2)
-            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
-        for cell in self.model.population[:1]:
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
@@ -145,10 +143,21 @@ class ViewController:
             self.pen.color('black')
             self.pen.width(3)
             self.pen.dot(constants.CELL_RADIUS/2)
-            self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell)
-        sleep(1)
+            self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=True, cmap=reward_cmap)
+        # MAIN AGENT UPDATE
+        for cell in self.model.population[:1]:
+            self.pen.color('white')
+            self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=False, cmap=reward_cmap)
+            self.model.follow_offline_policiy(cell)
+            self.pen.penup()
+            self.pen.goto(cell.location.x, cell.location.y)
+            self.pen.pendown()
+            #self.pen.color(cell.color())
+            self.pen.width(3)
+            self.pen.dot(constants.CELL_RADIUS/2)
         self.screen.update()
-        if self.model.is_complete():
+        #sleep(1)
+        if self.model.is_complete(self.model.population[0]):
             return
         else:
             end_time = time_ns() // NS_TO_MS
