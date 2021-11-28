@@ -31,7 +31,7 @@ def q_learning(data, alpha, gamma):
     ii64 = np.iinfo(np.int64)
     Q.fill(ii64.min)
     for e in range(0,NUM_EPOCHS):
-        print(e)
+        #print(e)
         learning_rate = alpha * ((NUM_EPOCHS - e) / NUM_EPOCHS)**2
         for s in data:
             Q[s[STATE],s[ACTION]] += learning_rate * (s[REWARD] + gamma * np.max(Q[s[NEW_STATE],:]) - Q[s[STATE],s[ACTION]])
