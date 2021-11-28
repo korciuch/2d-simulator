@@ -63,5 +63,5 @@ def load_policy(src_file):
 
 if __name__ == "__main__":
     r = create_reward_matrix(create_new=True)
-    print(r)
+    #print(r)
     explore(reward_matrix=r,n_samples=10000)
