@@ -2,7 +2,7 @@ import numpy as np
 
 END_REWARD = 1000
 START_REWARD = 0
-ACTIONS = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
+ACTIONS = [(1,0), (-1,0), (0,-1), (0,1), (0,0)] # down - 1, up - 2, left - 3, right - 4
 
 def create_reward_matrix(create_new):
     r = None
@@ -11,7 +11,13 @@ def create_reward_matrix(create_new):
     ss = (m_rows-1,0)
     es = (0,n_columns-1)
     if create_new:
-        r = np.random.randint(-100,100,size=((m_rows,n_columns)))
+        r = np.ones((m_rows,n_columns), dtype=int)
+        #r = np.random.randint(-100,100,size=((m_rows,n_columns)))
+        r[0:10, :] = 1
+        r[10:19, :-1] = -1000
+        r[:, 6] = 1
+        r[:, 12] = 1
+        r[19:24, :] = 1
         r[es] = END_REWARD
         r[ss] = START_REWARD
         # export reward matrix
@@ -50,6 +56,8 @@ def explore(reward_matrix, n_samples):
         elif m >= np.shape(reward_matrix)[0] or n >= np.shape(reward_matrix)[1]: continue
         sp = (m, n)
         r = reward_matrix[m,n]
+        if a[0] == 0 and a[1] == 0:
+            r = reward_matrix[m,n]-1
         next_state = np.ravel_multi_index(sp, np.shape(reward_matrix))
         samples.append([str(current_state+1), str(index+1), str(r), str(next_state+1)])
     export_samples(samples)
@@ -64,4 +72,4 @@ def load_policy(src_file):
 if __name__ == "__main__":
     r = create_reward_matrix(create_new=True)
     #print(r)
-    explore(reward_matrix=r,n_samples=10000)
+    explore(reward_matrix=r,n_samples=20000)
