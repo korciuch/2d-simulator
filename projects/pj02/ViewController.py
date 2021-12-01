@@ -136,6 +136,7 @@ class ViewController:
         # ADVERSARY UPDATES
         for cell in self.model.population[1:]:
             self.pen.penup()
+            #self.model.follow_offline_policiy(cell)
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             self.pen.color(cell.color())
