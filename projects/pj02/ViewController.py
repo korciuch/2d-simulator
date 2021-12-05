@@ -86,7 +86,7 @@ class ViewController:
     def draw_los(self, cell_x, cell_y, depth, origin_cell, is_adversary, cmap):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         origin = self.model.find_grid_pos(upper_left,origin_cell,True)
-        # print("ORIGIN:", origin)
+        #print("ORIGIN:", origin)
         def in_bounds(x, y) -> bool:
             if x <= constants.MIN_X or x >= constants.MAX_X: return False
             elif y <= constants.MIN_Y or y >= constants.MAX_Y: return False

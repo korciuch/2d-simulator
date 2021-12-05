@@ -77,7 +77,7 @@ class Model:
         """Generate a random location."""
         xCoord = np.random.choice([constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_COLS+1)])
         yCoord = np.random.choice([constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_ROWS+1)])
-        # print('RANDOM_LOCATION: ', (xCoord,yCoord))
+        #print('RANDOM_LOCATION: ', (xCoord,yCoord))
         return Point(xCoord, yCoord)
 
     def random_direction(self, speed: float) -> Point:
