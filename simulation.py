@@ -13,11 +13,14 @@ def create_reward_matrix(create_new):
     if create_new:
         r = np.ones((m_rows,n_columns), dtype=int)
         #r = np.random.randint(-100,100,size=((m_rows,n_columns)))
-        r[0:10, :] = 1
-        r[10:19, :-1] = -1000
-        r[:, 6] = 1
-        r[:, 12] = 1
-        r[19:24, :] = 1
+        #r[0:10, :] = 1
+        #r[:, 6] = 1
+        #r[:, 12] = 1
+        #r[19:24, :] = 1
+        r[2:4, :-2] = -1000
+        r[7:9, 3:25] = -1000
+        r[14:16, :-3] = -1000
+        r[20:22, 3:25] = -1000
         r[es] = END_REWARD
         r[ss] = START_REWARD
         # export reward matrix
