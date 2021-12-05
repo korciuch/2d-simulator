@@ -124,7 +124,9 @@ class ViewController:
                 self.fill_square(x_sq,y_sq,tuple((0,val,0)))
 
     def tick(self) -> None:
-        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+        #reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+        max_val = np.min(self.model.r)
+        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/max_val*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/max_val*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
         """Update the model state and redraw visualization."""
         start_time = time_ns() // NS_TO_MS
         self.pen.color('black')
