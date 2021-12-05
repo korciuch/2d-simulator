@@ -48,10 +48,11 @@ class Model:
     """The state of the simulation."""
 
     population: List[Cell]
+    agent: List[Cell]
     time: int = 0
     adjacency_sets: List[set()]
     r = create_reward_matrix(create_new=False)
-    actions = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
+    actions = [(1,0), (-1,0), (0,-1), (0,1), (0,0)] # down - 1, up - 2, left - 3, right - 4
     angles = [0.75,0.25,0.5,0]
     policies = load_policy(src_file='sim.policy')
     sensor_angles = np.asarray(np.linspace(0,1,35))
@@ -61,17 +62,63 @@ class Model:
     def __init__(self, cells: int, speed: float):
         """Initialize the cells with random locations and directions."""
         self.population = []
-        for _ in range(0, cells):
+        self.agent = []
+        #for _ in range(0, cells):
+        #    start_loc = self.random_location()
+        #    start_dir = self.random_direction(speed)
+        #    self.population.append(Cell(start_loc, start_dir))
+        for i in range(0, cells):
             start_loc = self.random_location()
             start_dir = self.random_direction(speed)
-            self.population.append(Cell(start_loc, start_dir))
+            if i == 0:
+                xCoord = constants.MIN_X + constants.CELL_RADIUS/2
+                yCoord = constants.MAX_Y + constants.CELL_RADIUS/2
+                self.agent.append(Cell(Point(xCoord, yCoord), start_dir))
+            else: self.population.append(Cell(start_loc, start_dir))
     
     def tick(self) -> None:
         """Update the state of the simulation by one time step."""
         self.time += 1
+        for cell in self.agent:
+            cell.tick()
+            self.enforce_bounds(cell)
         for cell in self.population:
             cell.tick()
             self.enforce_bounds(cell)
+            self.randomMove()
+    
+    def randomMove(self):
+        for cell in self.population:
+            num = np.random.randint(0,20)
+            #change x dir
+            if num <= 1:
+                #print("X")
+                if cell.direction.x != 0:
+                    cell.direction.x *= -1
+                else:
+                    cell.direction.x = cell.direction.y
+                    cell.direction.y = 0
+            #change y dir
+            if num == 3 or num == 2:
+                #print("Y")
+                if cell.direction.y != 0:
+                    cell.direction.y *= -1
+                else:
+                    cell.direction.y = cell.direction.x
+                    cell.direction.x = 0
+    '''
+    def collisionCheck(self, cell: Cell):
+        for cell2 in self.population:
+            if cell != cell2:
+                if (self.contains(cell, cell2)):
+                    print("collision")
+   
+    def contains(self, cell1, cell2) -> bool:
+        currDist = np.sqrt((cell1.location.x - cell2.location.x)**2 + (cell1.location.y - cell2.location.y)**2)
+        minDist = 2*constants.CELL_RADIUS
+        if (currDist < minDist):
+            return True
+    '''
 
     def random_location(self) -> Point:
         """Generate a random location."""

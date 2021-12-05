@@ -10,8 +10,15 @@ def create_reward_matrix(create_new):
     n_columns = 25
     ss = (m_rows-1,0)
     es = (0,n_columns-1)
+    ii64 = np.iinfo(np.int64)
     if create_new:
-        r = np.random.randint(-100,100,size=((m_rows,n_columns)))
+        r = np.ones((m_rows,n_columns), dtype=np.int64)
+        r[2:4, :-2] = np.iinfo(np.int64).min
+        r[7:9, 3:25] = np.iinfo(np.int64).min
+        r[12:18, 1:9] = np.iinfo(np.int64).min
+        r[12:18, 12:16] = np.iinfo(np.int64).min
+        r[12:18, 19:23] = np.iinfo(np.int64).min
+        r[21:23, 3:24] = np.iinfo(np.int64).min
         r[es] = END_REWARD
         r[ss] = START_REWARD
         # export reward matrix
@@ -39,19 +46,25 @@ def explore(reward_matrix, n_samples):
             for s in samples:
                 f.write(','.join(s)+'\n')
     samples = []
-    for _ in range(n_samples):
-        current_state = np.random.randint(0, np.shape(reward_matrix)[0]*np.shape(reward_matrix)[1])
-        state = np.unravel_index(current_state, np.shape(reward_matrix))
-        index = np.random.choice(len(ACTIONS))
-        a = ACTIONS[index]
-        m = state[0] + a[0] 
-        n = state[1] + a[1]
-        if m < 0 or n < 0: continue
-        elif m >= np.shape(reward_matrix)[0] or n >= np.shape(reward_matrix)[1]: continue
-        sp = (m, n)
-        r = reward_matrix[m,n]
-        next_state = np.ravel_multi_index(sp, np.shape(reward_matrix))
-        samples.append([str(current_state+1), str(index+1), str(r), str(next_state+1)])
+    for iter in range(4):
+        #for _ in range(n_samples):
+        for i in range(625):
+            #current_state = np.random.randint(0, np.shape(reward_matrix)[0]*np.shape(reward_matrix)[1])
+            current_state = i
+            state = np.unravel_index(current_state, np.shape(reward_matrix))
+            #index = np.random.choice(len(ACTIONS))
+            index = iter
+            a = ACTIONS[index]
+            m = state[0] + a[0] 
+            n = state[1] + a[1]
+            if m < 0 or n < 0: continue
+            elif m >= np.shape(reward_matrix)[0] or n >= np.shape(reward_matrix)[1]: continue
+            sp = (m, n)
+            r = reward_matrix[m,n]
+            if a[0] == 0 and a[1] == 0:
+                r = reward_matrix[m,n]-1
+            next_state = np.ravel_multi_index(sp, np.shape(reward_matrix))
+            samples.append([str(current_state+1), str(index+1), str(r), str(next_state+1)])
     export_samples(samples)
 
 def load_policy(src_file):
