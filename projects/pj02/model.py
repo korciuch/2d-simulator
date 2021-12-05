@@ -150,13 +150,13 @@ class Model:
             cell.direction.y *= -1 
 
     def intersect_los(self,main_adj_set,adv_locations,adv_masks):
-        print('main adjacency set: ', main_adj_set)
-        print('locations of adversaries: ', adv_locations)
-        print('reward masks of adversaries: ', adv_masks)
+        #print('main adjacency set: ', main_adj_set)
+        #print('locations of adversaries: ', adv_locations)
+        #print('reward masks of adversaries: ', adv_masks)
         other_agents = set()
         for s in adv_locations: other_agents.add(s)
         intersection = main_adj_set.intersection(other_agents)
-        print('I see: ', intersection)
+        #print('I see: ', intersection)
 
     def follow_offline_policiy(self, cell):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
