@@ -49,11 +49,12 @@ class Model:
 
     population: List[Cell]
     time: int = 0
+    adjacency_sets: List[set()]
     r = create_reward_matrix(create_new=False)
     actions = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
     angles = [0.75,0.25,0.5,0]
     policies = load_policy(src_file='sim.policy')
-    sensor_angles = np.asarray(np.linspace(0,1,17))
+    sensor_angles = np.asarray(np.linspace(0,1,35))
     start_state = (constants.NUM_ROWS-1,0)
     end_state = (0,constants.NUM_COLS-1)
 
@@ -76,7 +77,7 @@ class Model:
         """Generate a random location."""
         xCoord = np.random.choice([constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_COLS+1)])
         yCoord = np.random.choice([constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_ROWS+1)])
-        print('RANDOM_LOCATION: ', (xCoord,yCoord))
+        # print('RANDOM_LOCATION: ', (xCoord,yCoord))
         return Point(xCoord, yCoord)
 
     def random_direction(self, speed: float) -> Point:
@@ -100,6 +101,15 @@ class Model:
         if cell.location.y-constants.CELL_RADIUS/2 < constants.MIN_Y:
             cell.location.y = constants.MIN_Y+constants.CELL_RADIUS/2
             cell.direction.y *= -1 
+
+    def intersect_los(self,main_adj_set,adv_locations,adv_masks):
+        print('main adjacency set: ', main_adj_set)
+        print('locations of adversaries: ', adv_locations)
+        print('reward masks of adversaries: ', adv_masks)
+        other_agents = set()
+        for s in adv_locations: other_agents.add(s)
+        intersection = main_adj_set.intersection(other_agents)
+        print('I see: ', intersection)
 
     def follow_offline_policiy(self, cell):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
