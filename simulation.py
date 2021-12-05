@@ -2,7 +2,7 @@ import numpy as np
 
 END_REWARD = 1000
 START_REWARD = 0
-ACTIONS = [(1,0), (-1,0), (0,-1), (0,1), (0,0)] # down - 1, up - 2, left - 3, right - 4
+ACTIONS = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
 
 def create_reward_matrix(create_new):
     r = None
@@ -13,17 +13,12 @@ def create_reward_matrix(create_new):
     ii64 = np.iinfo(np.int64)
     if create_new:
         r = np.ones((m_rows,n_columns), dtype=np.int64)
-        #r = np.random.randint(-100,100,size=((m_rows,n_columns)))
-        #r[0:10, :] = 1
-        #r[:, 6] = 1
-        #r[:, 12] = 1
-        #r[19:24, :] = 1
-        r[2:4, :-2] = -1001
-        r[7:9, 3:25] = -1001
-        r[12:18, 1:9] = -1001
-        r[12:18, 12:16] = -1001
-        r[12:18, 19:23] = -1001
-        r[21:23, 3:24] = -1001
+        r[2:4, :-2] = np.iinfo(np.int64).min
+        r[7:9, 3:25] = np.iinfo(np.int64).min
+        r[12:18, 1:9] = np.iinfo(np.int64).min
+        r[12:18, 12:16] = np.iinfo(np.int64).min
+        r[12:18, 19:23] = np.iinfo(np.int64).min
+        r[21:23, 3:24] = np.iinfo(np.int64).min
         r[es] = END_REWARD
         r[ss] = START_REWARD
         # export reward matrix
@@ -51,21 +46,25 @@ def explore(reward_matrix, n_samples):
             for s in samples:
                 f.write(','.join(s)+'\n')
     samples = []
-    for _ in range(n_samples):
-        current_state = np.random.randint(0, np.shape(reward_matrix)[0]*np.shape(reward_matrix)[1])
-        state = np.unravel_index(current_state, np.shape(reward_matrix))
-        index = np.random.choice(len(ACTIONS))
-        a = ACTIONS[index]
-        m = state[0] + a[0] 
-        n = state[1] + a[1]
-        if m < 0 or n < 0: continue
-        elif m >= np.shape(reward_matrix)[0] or n >= np.shape(reward_matrix)[1]: continue
-        sp = (m, n)
-        r = reward_matrix[m,n]
-        if a[0] == 0 and a[1] == 0:
-            r = reward_matrix[m,n]-1
-        next_state = np.ravel_multi_index(sp, np.shape(reward_matrix))
-        samples.append([str(current_state+1), str(index+1), str(r), str(next_state+1)])
+    for iter in range(4):
+        #for _ in range(n_samples):
+        for i in range(625):
+            #current_state = np.random.randint(0, np.shape(reward_matrix)[0]*np.shape(reward_matrix)[1])
+            current_state = i
+            state = np.unravel_index(current_state, np.shape(reward_matrix))
+            #index = np.random.choice(len(ACTIONS))
+            index = iter
+            a = ACTIONS[index]
+            m = state[0] + a[0] 
+            n = state[1] + a[1]
+            if m < 0 or n < 0: continue
+            elif m >= np.shape(reward_matrix)[0] or n >= np.shape(reward_matrix)[1]: continue
+            sp = (m, n)
+            r = reward_matrix[m,n]
+            if a[0] == 0 and a[1] == 0:
+                r = reward_matrix[m,n]-1
+            next_state = np.ravel_multi_index(sp, np.shape(reward_matrix))
+            samples.append([str(current_state+1), str(index+1), str(r), str(next_state+1)])
     export_samples(samples)
 
 def load_policy(src_file):
@@ -78,4 +77,4 @@ def load_policy(src_file):
 if __name__ == "__main__":
     r = create_reward_matrix(create_new=True)
     #print(r)
-    explore(reward_matrix=r,n_samples=20000)
+    explore(reward_matrix=r,n_samples=10000)
