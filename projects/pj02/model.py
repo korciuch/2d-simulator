@@ -162,8 +162,8 @@ class Model:
                 if cell[0] in main_adj_set:
                     output[cell[0]] = output.get(cell[0], 0) + cell[1]
                     if output.get(cell[0]) > 1: output[cell[0]] = 1
-        print('I see: ', intersection)
-        print('los_intersections: ', output)
+        #print('I see: ', intersection)
+        #print('los_intersections: ', output)
         return output
 
     def follow_offline_policiy(self, cell):
