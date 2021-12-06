@@ -23,6 +23,11 @@ def compute(infile,outfile):
     D = load_samples(infile)
     D[:,REWARD] = np.add(D[:,REWARD],1)
     Q = q_learning(data=D, alpha=0.5, gamma=0.95)
+    with open('q_matrix.csv', 'w') as f:
+        string_elements = [[str(elem) for elem in row] for row in Q]
+        for row in string_elements:
+            f.write(','.join(row)+'\n')
+        f.close()
     export_policy(matrix=Q,output=outfile,offset=1)
 
 def q_learning(data, alpha, gamma):
