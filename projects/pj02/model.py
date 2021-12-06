@@ -90,7 +90,6 @@ class Model:
             num = np.random.randint(0,30)
             #change x dir
             if num == 0:
-                #print("X")
                 if cell.direction.x != 0:
                     cell.direction.x *= -1
                 else:
@@ -98,7 +97,6 @@ class Model:
                     cell.direction.y = 0
             #change y dir
             if num == 2:
-                #print("Y")
                 if cell.direction.y != 0:
                     cell.direction.y *= -1
                 else:
@@ -135,9 +133,6 @@ class Model:
             cell.direction.y *= -1 
 
     def intersect_los(self,main_adj_set,adv_locations,adv_masks):
-        #print('main adjacency set: ', main_adj_set)
-        #print('locations of adversaries: ', adv_locations)
-        #print('reward masks of adversaries: ', adv_masks)
         other_agents = set()
         output = {}
         for s in adv_locations: other_agents.add(s)
@@ -147,8 +142,6 @@ class Model:
                 if cell[0] in main_adj_set:
                     output[cell[0]] = output.get(cell[0], 0) + cell[1]
                     if output.get(cell[0]) > 1: output[cell[0]] = 1
-        #print('I see: ', intersection)
-        #print('los_intersections: ', output)
         return output
 
     def follow_offline_policy(self, cell):
@@ -182,11 +175,11 @@ class Model:
                     sp = (m, n)
                     val = self.Q[curr_state_index][a]
                     if sp in intersections.keys(): 
-                        val = -np.iinfo(np.int64).min * intersections[sp]
+                        val -= np.iinfo(np.int64).min * intersections[sp]
                     lookahead(sp, cum_reward + val, depth+1, actions+[a])
 
         lookahead(coord,0,0,[])
-        action = sorted(outcomes,key=lambda x:x[0],reverse=True)[0][1][1]
+        action = sorted(outcomes,key=lambda x:x[0],reverse=True)[0][1][0]
         angle = self.angles[action-1]*2.0*np.pi
         x_dir = np.cos(angle) * constants.CELL_SPEED
         y_dir = np.sin(angle) * constants.CELL_SPEED
