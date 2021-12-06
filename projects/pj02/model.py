@@ -106,19 +106,6 @@ class Model:
                 else:
                     cell.direction.y = cell.direction.x
                     cell.direction.x = 0
-    '''
-    def collisionCheck(self, cell: Cell):
-        for cell2 in self.population:
-            if cell != cell2:
-                if (self.contains(cell, cell2)):
-                    print("collision")
-   
-    def contains(self, cell1, cell2) -> bool:
-        currDist = np.sqrt((cell1.location.x - cell2.location.x)**2 + (cell1.location.y - cell2.location.y)**2)
-        minDist = 2*constants.CELL_RADIUS
-        if (currDist < minDist):
-            return True
-    '''
 
     def random_location(self) -> Point:
         """Generate a random location."""
