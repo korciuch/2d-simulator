@@ -8,14 +8,9 @@ import concurrent.futures
 
 def main() -> None:
     """Entrypoint of simulation."""
-    with concurrent.futures.ProcessPoolExecutor(max_workers=128) as executor:
-        future_to_tick = {
-            executor.submit(work_unit): \
-                _ for _ in range(0,1000)
-        }
-        for future in concurrent.futures.as_completed(future_to_tick):
-            res = future.result()
-            print(res)
+    model = Model(constants.CELL_COUNT, constants.CELL_SPEED)
+    vc = ViewController(model)
+    vc.start_simulation()
 
 if __name__ == "__main__":
     main()

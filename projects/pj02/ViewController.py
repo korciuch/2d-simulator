@@ -151,8 +151,8 @@ class ViewController:
         self.pen.width(1)
         self.model.tick()
         self.pen.clear()
-        #self.initialize_grid()
-        #self.fill_grid(reward_cmap)
+        self.initialize_grid()
+        self.fill_grid(reward_cmap)
         adv_coords = []
         adv_masks = {}
         # ADVERSARY UPDATES
