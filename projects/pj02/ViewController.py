@@ -155,7 +155,7 @@ class ViewController:
             self.pen.color(cell.color())
             self.pen.color('black')
             self.pen.dot(constants.CELL_RADIUS/2)
-            obj = self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=True, cmap=reward_cmap)
+            obj = self.draw_los(cell.location.x,cell.location.y,depth=2, origin_cell=cell, is_adversary=True, cmap=reward_cmap)
             adv_coords.append(obj[0])
             adv_masks[obj[2]] = obj[1]
         # MAIN AGENT UPDATE

@@ -54,10 +54,10 @@ class Model:
     adjacency_sets: List[set()]
     r = create_reward_matrix(create_new=False)
     Q = load_Q('q_matrix.csv')
-    actions = [(1,0), (-1,0), (0,-1), (0,1), (0,0)] # down - 1, up - 2, left - 3, right - 4
+    actions = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
     angles = [0.75,0.25,0.5,0]
     policies = load_policy(src_file='sim.policy')
-    sensor_angles = np.asarray(np.linspace(0,1,35))
+    sensor_angles = np.asarray(np.linspace(0,1,17))
     start_state = (constants.NUM_ROWS-1,0)
     end_state = (0,constants.NUM_COLS-1)
 
@@ -182,12 +182,13 @@ class Model:
                     sp = (m, n)
                     val = self.Q[curr_state_index][a]
                     if sp in intersections.keys(): 
-                        val = -np.iinfo(np.int64).min * intersections[sp]
+                        val += np.iinfo(np.int64).min * intersections[sp]
                     lookahead(sp, cum_reward + val, depth+1, actions+[a])
 
         lookahead(coord,0,0,[])
-        action = sorted(outcomes,key=lambda x:x[0],reverse=True)[0][1][1]
-        angle = self.angles[action-1]*2.0*np.pi
+        print(sorted(outcomes,key=lambda x:x[0],reverse=True))
+        action = sorted(outcomes,key=lambda x:x[0],reverse=True)[0][1][0]
+        angle = self.angles[action]*2.0*np.pi
         x_dir = np.cos(angle) * constants.CELL_SPEED
         y_dir = np.sin(angle) * constants.CELL_SPEED
         cell.direction.x = x_dir
