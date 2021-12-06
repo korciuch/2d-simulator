@@ -23,11 +23,6 @@ def compute(infile,outfile):
     D = load_samples(infile)
     D[:,REWARD] = np.add(D[:,REWARD],1)
     Q = q_learning(data=D, alpha=0.5, gamma=0.95)
-    with open('q_matrix.csv', 'w') as f:
-        string_elements = [[str(elem) for elem in row] for row in Q]
-        for row in string_elements:
-            f.write(','.join(row)+'\n')
-        f.close()
     export_policy(matrix=Q,output=outfile,offset=1)
 
 def q_learning(data, alpha, gamma):
@@ -36,7 +31,7 @@ def q_learning(data, alpha, gamma):
     ii64 = np.iinfo(np.int64)
     Q.fill(ii64.min)
     for e in range(0,NUM_EPOCHS):
-        print(e)
+        #print(e)
         learning_rate = alpha * ((NUM_EPOCHS - e) / NUM_EPOCHS)**2
         for s in data:
             Q[s[STATE],s[ACTION]] += learning_rate * (s[REWARD] + gamma * np.max(Q[s[NEW_STATE],:]) - Q[s[STATE],s[ACTION]])
