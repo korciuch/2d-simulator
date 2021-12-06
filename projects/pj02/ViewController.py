@@ -122,7 +122,8 @@ class ViewController:
             y_sq = constants.MAX_Y - grid_pos[0][0] * constants.CELL_RADIUS
             val = int(grid_pos[1]*255)
             if is_adversary:
-                self.fill_square(x_sq,y_sq,tuple((val,0,0)))
+                #self.fill_square(x_sq,y_sq,tuple((val,0,0)))
+                pass
             else:
                 self.fill_square(x_sq,y_sq,tuple((0,val,0)))
         if is_adversary:
