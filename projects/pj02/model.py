@@ -87,17 +87,17 @@ class Model:
     
     def randomMove(self):
         for cell in self.population:
-            num = np.random.randint(0,30)
+            num = np.random.randint(0,80)
             #change x dir
-            if num == 0:
-                if cell.direction.x != 0:
+            if num <= 0:
+                if cell.direction.x > 0 or cell.direction.x < -.01:
                     cell.direction.x *= -1
                 else:
                     cell.direction.x = cell.direction.y
                     cell.direction.y = 0
             #change y dir
-            if num == 2:
-                if cell.direction.y != 0:
+            if num == 2:# or num == 3:
+                if cell.direction.y > 0 or cell.direction.y < -.01:
                     cell.direction.y *= -1
                 else:
                     cell.direction.y = cell.direction.x

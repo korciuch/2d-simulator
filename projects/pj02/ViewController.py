@@ -38,7 +38,8 @@ class ViewController:
         print("time")
         print(time.time() - startTime)
         done()
-        bye()
+        print("time")
+        print(time.time() - startTime)
 
     def initialize_grid(self) -> None:
         # COLUMNS
