@@ -2,11 +2,13 @@
 
 from math import cos
 import numpy as np
-from turtle import Turtle, Screen, color, done
+from turtle import Turtle, Screen, color, done, bye, exitonclick
 from projects.pj02.model import Cell, Model, Point
 from projects.pj02 import constants
 from typing import Any
+import concurrent.futures
 from time import time_ns, sleep
+import time
 
 NS_TO_MS: int = 1000000
 
@@ -27,11 +29,16 @@ class ViewController:
         self.pen = Turtle()
         self.pen.hideturtle()
         self.pen.speed(0)
+        self.collected_rewards = []
 
     def start_simulation(self) -> None:
         """Call the first tick of the simulation and begin turtle gfx."""
+        startTime = time.time()
         self.tick()
+        print("time")
+        print(time.time() - startTime)
         done()
+        bye()
 
     def initialize_grid(self) -> None:
         # COLUMNS
@@ -133,6 +140,7 @@ class ViewController:
             return (raw_coords, norm_penalties)
 
     def tick(self) -> None:
+        upper_left = Point(constants.MIN_X,constants.MAX_Y)
         #reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
         max_val = np.min(self.model.r)
         reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/max_val*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/max_val*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
@@ -142,8 +150,8 @@ class ViewController:
         self.pen.width(1)
         self.model.tick()
         self.pen.clear()
-        self.initialize_grid()
-        self.fill_grid(reward_cmap)
+        #self.initialize_grid()
+        #self.fill_grid(reward_cmap)
         adv_coords = []
         adv_masks = {}
         # ADVERSARY UPDATES
@@ -172,9 +180,14 @@ class ViewController:
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             self.pen.dot(constants.CELL_RADIUS/2)
+            grid_pos = self.model.find_grid_pos(upper_left,cell,True)
+            self.collected_rewards.append(self.model.r[grid_pos])
         self.screen.update()
         # sleep(1)
         if self.model.is_complete(self.model.population[0]):
+            print(self.collected_rewards)
+            with open('./collected_rewards.csv', 'a') as f:
+                f.write(str(self.collected_rewards)+'\n')
             return
         else:
             end_time = time_ns() // NS_TO_MS

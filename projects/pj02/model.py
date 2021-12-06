@@ -179,7 +179,7 @@ class Model:
                     lookahead(sp, cum_reward + val, depth+1, actions+[a])
 
         lookahead(coord,0,0,[])
-        print(sorted(outcomes,key=lambda x:x[0],reverse=True))
+        #print(sorted(outcomes,key=lambda x:x[0],reverse=True))
         action = sorted(outcomes,key=lambda x:x[0],reverse=True)[0][1][0]
         angle = self.angles[action]*2.0*np.pi
         x_dir = np.cos(angle) * constants.CELL_SPEED
