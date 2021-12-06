@@ -1,7 +1,8 @@
 """The model classes maintain the state and logic of the simulation."""
 
 from __future__ import annotations
-from simulation import create_reward_matrix, load_policy
+from simulation import create_reward_matrix, load_policy, ACTIONS
+from q_learning import load_Q
 from typing import List
 from random import random
 from projects.pj02 import constants
@@ -52,6 +53,7 @@ class Model:
     time: int = 0
     adjacency_sets: List[set()]
     r = create_reward_matrix(create_new=False)
+    Q = load_Q('q_matrix.csv')
     actions = [(1,0), (-1,0), (0,-1), (0,1), (0,0)] # down - 1, up - 2, left - 3, right - 4
     angles = [0.75,0.25,0.5,0]
     policies = load_policy(src_file='sim.policy')
@@ -63,17 +65,13 @@ class Model:
         """Initialize the cells with random locations and directions."""
         self.population = []
         self.agent = []
-        #for _ in range(0, cells):
-        #    start_loc = self.random_location()
-        #    start_dir = self.random_direction(speed)
-        #    self.population.append(Cell(start_loc, start_dir))
         for i in range(0, cells):
             start_loc = self.random_location()
             start_dir = self.random_direction(speed)
             if i == 0:
                 xCoord = constants.MIN_X + constants.CELL_RADIUS/2
-                yCoord = constants.MAX_Y + constants.CELL_RADIUS/2
-                self.agent.append(Cell(Point(xCoord, yCoord), start_dir))
+                yCoord = constants.MIN_Y + constants.CELL_RADIUS/2
+                self.population.append(Cell(Point(xCoord, yCoord), start_dir))
             else: self.population.append(Cell(start_loc, start_dir))
     
     def tick(self) -> None:
@@ -89,9 +87,9 @@ class Model:
     
     def randomMove(self):
         for cell in self.population:
-            num = np.random.randint(0,20)
+            num = np.random.randint(0,30)
             #change x dir
-            if num <= 1:
+            if num == 0:
                 #print("X")
                 if cell.direction.x != 0:
                     cell.direction.x *= -1
@@ -99,7 +97,7 @@ class Model:
                     cell.direction.x = cell.direction.y
                     cell.direction.y = 0
             #change y dir
-            if num == 3 or num == 2:
+            if num == 2:
                 #print("Y")
                 if cell.direction.y != 0:
                     cell.direction.y *= -1
@@ -166,11 +164,42 @@ class Model:
         #print('los_intersections: ', output)
         return output
 
-    def follow_offline_policiy(self, cell):
+    def follow_offline_policy(self, cell):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         policy_index = self.find_grid_pos(upper_left,cell,True)
         ravel_index = np.ravel_multi_index(policy_index,(constants.NUM_ROWS,constants.NUM_COLS))
         action = self.policies[ravel_index]
+        angle = self.angles[action-1]*2.0*np.pi
+        x_dir = np.cos(angle) * constants.CELL_SPEED
+        y_dir = np.sin(angle) * constants.CELL_SPEED
+        cell.direction.x = x_dir
+        cell.direction.y = y_dir
+
+    def follow_online_policy(self, cell, intersections):
+        outcomes = []
+        upper_left = Point(constants.MIN_X,constants.MAX_Y)
+        coord = self.find_grid_pos(upper_left,cell,True)
+        #ss_index = np.ravel_multi_index(coord,(constants.NUM_ROWS,constants.NUM_COLS))
+        # down - 0, up - 1, left - 2, right - 3
+        def lookahead(coord, cum_reward, depth, actions):
+            if depth == 2: 
+                outcomes.append((cum_reward,actions))
+                return
+            else:
+                for a in range(0,len(ACTIONS)):
+                    curr_state_index = np.ravel_multi_index(coord,(constants.NUM_ROWS,constants.NUM_COLS))
+                    m = coord[0] + ACTIONS[a][0]
+                    n = coord[1] + ACTIONS[a][1]
+                    if m < 0 or n < 0: continue
+                    elif m >= constants.NUM_ROWS or n >= constants.NUM_COLS: continue
+                    sp = (m, n)
+                    val = self.Q[curr_state_index][a]
+                    if sp in intersections.keys(): 
+                        val = -np.iinfo(np.int64).min * intersections[sp]
+                    lookahead(sp, cum_reward + val, depth+1, actions+[a])
+
+        lookahead(coord,0,0,[])
+        action = sorted(outcomes,key=lambda x:x[0],reverse=True)[0][1][1]
         angle = self.angles[action-1]*2.0*np.pi
         x_dir = np.cos(angle) * constants.CELL_SPEED
         y_dir = np.sin(angle) * constants.CELL_SPEED
@@ -188,4 +217,8 @@ class Model:
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         grid_pos = self.find_grid_pos(upper_left,cell,True)
         if grid_pos == constants.END_STATE: return True
+        for adv in self.population[1:]:
+            adv_pos = self.find_grid_pos(upper_left,adv,True)
+            if grid_pos == adv_pos:
+                return True
         else: return False

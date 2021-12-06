@@ -125,7 +125,8 @@ class ViewController:
                 #self.fill_square(x_sq,y_sq,tuple((val,0,0)))
                 pass
             else:
-                self.fill_square(x_sq,y_sq,tuple((0,val,0)))
+                # self.fill_square(x_sq,y_sq,tuple((0,val,0)))
+                pass
         if is_adversary:
             return (self.model.find_grid_pos(upper_left,Cell(Point(cell_x,cell_y),Point(0,0)),True), norm_penalties, origin)
         else: 
@@ -148,27 +149,31 @@ class ViewController:
         # ADVERSARY UPDATES
         for cell in self.model.population[1:]:
             self.pen.penup()
-            #self.model.follow_offline_policiy(cell)
+            #self.model.follow_offline_policy(cell)
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             self.pen.color(cell.color())
             self.pen.color('black')
             self.pen.dot(constants.CELL_RADIUS/2)
-            obj = self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell, is_adversary=True, cmap=reward_cmap)
+            obj = self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=True, cmap=reward_cmap)
             adv_coords.append(obj[0])
             adv_masks[obj[2]] = obj[1]
         # MAIN AGENT UPDATE
         for cell in self.model.population[:1]:
-            self.pen.color('black')
-            sensor_obj = self.draw_los(cell.location.x,cell.location.y,depth=4, origin_cell=cell, is_adversary=False, cmap=reward_cmap)
-            self.model.intersect_los(sensor_obj[0],adv_coords,adv_masks)
-            self.model.follow_offline_policiy(cell)
+            self.pen.color('white')
+            sensor_obj = self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=False, cmap=reward_cmap)
+            intersections = self.model.intersect_los(sensor_obj[0],adv_coords,adv_masks)
+            # print(intersections)
+            if len(intersections) == 0:
+                self.model.follow_offline_policy(cell)
+            else:
+                self.model.follow_online_policy(cell, intersections)
             self.pen.penup()
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             self.pen.dot(constants.CELL_RADIUS/2)
         self.screen.update()
-        #sleep(1)
+        # sleep(1)
         if self.model.is_complete(self.model.population[0]):
             return
         else:

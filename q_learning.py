@@ -6,7 +6,7 @@ STATE = 0
 ACTION = 1
 REWARD = 2
 NEW_STATE = 3
-NUM_EPOCHS = int(sys.argv[4])
+NUM_EPOCHS = 5000
 
 def load_samples(infile):
     data = []
@@ -36,7 +36,7 @@ def q_learning(data, alpha, gamma):
     ii64 = np.iinfo(np.int64)
     Q.fill(ii64.min)
     for e in range(0,NUM_EPOCHS):
-        #print(e)
+        print(e)
         learning_rate = alpha * ((NUM_EPOCHS - e) / NUM_EPOCHS)**2
         for s in data:
             Q[s[STATE],s[ACTION]] += learning_rate * (s[REWARD] + gamma * np.max(Q[s[NEW_STATE],:]) - Q[s[STATE],s[ACTION]])
@@ -47,6 +47,17 @@ def export_policy(matrix,output,offset):
     with open(output, 'a') as f:
         for state_row in matrix:
             f.write(str(np.argmax(state_row)+offset)+'\n')
+
+def load_Q(infile):
+    data = []
+    with open(infile) as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar="\"")
+        count = -1
+        for r in reader:
+            count += 1
+            if count == 0: continue
+            data.append(np.subtract(np.asarray(r, dtype=float),1))
+    return np.asarray(data)
 
 def main():
     if len(sys.argv) != 5:
