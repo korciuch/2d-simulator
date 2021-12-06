@@ -131,7 +131,9 @@ class ViewController:
             return (raw_coords, norm_penalties)
 
     def tick(self) -> None:
-        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+        #reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+        max_val = np.min(self.model.r)
+        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/max_val*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/max_val*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
         """Update the model state and redraw visualization."""
         start_time = time_ns() // NS_TO_MS
         self.pen.color('black')
@@ -145,6 +147,7 @@ class ViewController:
         # ADVERSARY UPDATES
         for cell in self.model.population[1:]:
             self.pen.penup()
+            #self.model.follow_offline_policiy(cell)
             self.pen.goto(cell.location.x, cell.location.y)
             self.pen.pendown()
             self.pen.color(cell.color())
