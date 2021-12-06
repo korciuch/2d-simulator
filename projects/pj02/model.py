@@ -57,7 +57,7 @@ class Model:
     actions = [(1,0), (-1,0), (0,-1), (0,1), (0,0)] # down - 1, up - 2, left - 3, right - 4
     angles = [0.75,0.25,0.5,0]
     policies = load_policy(src_file='sim.policy')
-    sensor_angles = np.asarray(np.linspace(0,1,35))
+    sensor_angles = np.asarray(np.linspace(0,1,16))
     start_state = (constants.NUM_ROWS-1,0)
     end_state = (0,constants.NUM_COLS-1)
 
