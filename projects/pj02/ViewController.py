@@ -7,6 +7,7 @@ from projects.pj02.model import Cell, Model, Point
 from projects.pj02 import constants
 from typing import Any
 from time import time_ns, sleep
+import time
 
 NS_TO_MS: int = 1000000
 
@@ -30,8 +31,11 @@ class ViewController:
 
     def start_simulation(self) -> None:
         """Call the first tick of the simulation and begin turtle gfx."""
+        startTime = time.time()
         self.tick()
         done()
+        print("time")
+        print(time.time() - startTime)
 
     def initialize_grid(self) -> None:
         # COLUMNS
