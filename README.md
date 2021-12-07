@@ -10,3 +10,5 @@ q-learning + forward search
 
 ### To run simulator:
 > $ python3 -m projects.pj02 
+
+[Project Video] (https://www.youtube.com/watch?v=9dYmQkeZxak)
