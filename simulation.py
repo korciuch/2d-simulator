@@ -1,5 +1,6 @@
 import numpy as np
 
+OFFROAD_REWARD = -10000
 END_REWARD = 1000
 START_REWARD = 0
 ACTIONS = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
@@ -13,12 +14,13 @@ def create_reward_matrix(create_new):
     ii64 = np.iinfo(np.int64)
     if create_new:
         r = np.ones((m_rows,n_columns), dtype=np.int64)
-        r[2:4, :-2] = np.iinfo(np.int64).min
-        r[7:9, 3:25] = np.iinfo(np.int64).min
-        r[12:18, 1:9] = np.iinfo(np.int64).min
-        r[12:18, 12:16] = np.iinfo(np.int64).min
-        r[12:18, 19:23] = np.iinfo(np.int64).min
-        r[21:23, 3:24] = np.iinfo(np.int64).min
+        r.fill(10)
+        r[2:4, :-2] = OFFROAD_REWARD
+        r[7:9, 3:25] = OFFROAD_REWARD
+        r[12:18, 1:9] = OFFROAD_REWARD
+        r[12:18, 12:16] = OFFROAD_REWARD
+        r[12:18, 19:23] = OFFROAD_REWARD
+        r[21:23, 3:24] = OFFROAD_REWARD
         r[es] = END_REWARD
         r[ss] = START_REWARD
         # export reward matrix

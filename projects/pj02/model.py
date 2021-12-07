@@ -96,7 +96,7 @@ class Model:
                     cell.direction.x = cell.direction.y
                     cell.direction.y = 0
             #change y dir
-            if num == 2:# or num == 3:
+            if num == 2:
                 if cell.direction.y > 0 or cell.direction.y < -.01:
                     cell.direction.y *= -1
                 else:
@@ -107,7 +107,6 @@ class Model:
         """Generate a random location."""
         xCoord = np.random.choice([constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_COLS+1)])
         yCoord = np.random.choice([constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_ROWS+1)])
-        #print('RANDOM_LOCATION: ', (xCoord,yCoord))
         return Point(xCoord, yCoord)
 
     def random_direction(self, speed: float) -> Point:
@@ -144,11 +143,14 @@ class Model:
                     if output.get(cell[0]) > 1: output[cell[0]] = 1
         return output
 
-    def follow_offline_policy(self, cell):
+    def follow_offline_policy(self, cell, is_random):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         policy_index = self.find_grid_pos(upper_left,cell,True)
         ravel_index = np.ravel_multi_index(policy_index,(constants.NUM_ROWS,constants.NUM_COLS))
-        action = self.policies[ravel_index]
+        if not is_random:
+            action = self.policies[ravel_index]
+        else:
+            action = np.random.randint(0,3)
         angle = self.angles[action-1]*2.0*np.pi
         x_dir = np.cos(angle) * constants.CELL_SPEED
         y_dir = np.sin(angle) * constants.CELL_SPEED
@@ -159,7 +161,6 @@ class Model:
         outcomes = []
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         coord = self.find_grid_pos(upper_left,cell,True)
-        #ss_index = np.ravel_multi_index(coord,(constants.NUM_ROWS,constants.NUM_COLS))
         # down - 0, up - 1, left - 2, right - 3
         def lookahead(coord, cum_reward, depth, actions):
             if depth == 2: 
@@ -175,11 +176,10 @@ class Model:
                     sp = (m, n)
                     val = self.Q[curr_state_index][a]
                     if sp in intersections.keys(): 
-                        val += np.iinfo(np.int64).min * intersections[sp]
+                        val += constants.LOSS_REWARD * intersections[sp]
                     lookahead(sp, cum_reward + val, depth+1, actions+[a])
 
         lookahead(coord,0,0,[])
-        #print(sorted(outcomes,key=lambda x:x[0],reverse=True))
         action = sorted(outcomes,key=lambda x:x[0],reverse=True)[0][1][0]
         angle = self.angles[action]*2.0*np.pi
         x_dir = np.cos(angle) * constants.CELL_SPEED
@@ -193,13 +193,13 @@ class Model:
         c = abs((upper_left.x-cell.location.x - offset)/constants.CELL_RADIUS)-1
         return (round(r),round(c))
 
-    def is_complete(self,cell) -> bool:
+    def is_complete(self,cell) -> str:
         """Method to indicate when the simulation is complete."""
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         grid_pos = self.find_grid_pos(upper_left,cell,True)
-        if grid_pos == constants.END_STATE: return True
+        if grid_pos == constants.END_STATE: return 'win'
         for adv in self.population[1:]:
             adv_pos = self.find_grid_pos(upper_left,adv,True)
             if grid_pos == adv_pos:
-                return True
-        else: return False
+                return 'loss'
+        else: return 'continue'

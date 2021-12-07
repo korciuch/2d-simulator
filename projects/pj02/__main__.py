@@ -11,11 +11,10 @@ def main() -> None:
     with concurrent.futures.ProcessPoolExecutor(max_workers=128) as executor:
         future_to_tick = {
             executor.submit(work_unit): \
-                _ for _ in range(0,1000)
+                _ for _ in range(0,1)
         }
         for future in concurrent.futures.as_completed(future_to_tick):
             res = future.result()
-            print(res)
 
 if __name__ == "__main__":
     main()

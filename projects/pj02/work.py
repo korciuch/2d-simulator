@@ -6,4 +6,3 @@ def work_unit():
     model = Model(constants.CELL_COUNT, constants.CELL_SPEED)
     vc = ViewController(model)
     vc.start_simulation()
-    

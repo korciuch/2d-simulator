@@ -2,11 +2,11 @@
 
 from math import cos
 import numpy as np
+import turtle
 from turtle import Turtle, Screen, color, done, bye, exitonclick
 from projects.pj02.model import Cell, Model, Point
 from projects.pj02 import constants
 from typing import Any
-import concurrent.futures
 from time import time_ns, sleep
 import time
 
@@ -35,8 +35,6 @@ class ViewController:
         """Call the first tick of the simulation and begin turtle gfx."""
         startTime = time.time()
         self.tick()
-        print("time")
-        print(time.time() - startTime)
         done()
         print("time")
         print(time.time() - startTime)
@@ -94,7 +92,7 @@ class ViewController:
     def draw_los(self, cell_x, cell_y, depth, origin_cell, is_adversary, cmap):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         origin = self.model.find_grid_pos(upper_left,origin_cell,True)
-        #print("ORIGIN:", origin)
+
         def in_bounds(x, y) -> bool:
             if x <= constants.MIN_X or x >= constants.MAX_X: return False
             elif y <= constants.MIN_Y or y >= constants.MAX_Y: return False
@@ -106,6 +104,7 @@ class ViewController:
 
         raw_coords = set()
         adjacency_set = set()
+        
         def draw_line(rad):
             self.pen.penup()
             self.pen.goto(cell_x,cell_y)
@@ -118,10 +117,9 @@ class ViewController:
                 adjacency_set.add(tuple((grid_pos,1/(calculate_penalty(grid_pos)+0.5))))
                 raw_coords.add(grid_pos)
                 self.pen.goto(x_new, y_new)
-
+        
         for coeff in self.model.sensor_angles:
             draw_line(coeff * 2.0 * np.pi)
-        # print(sorted(adjacency_set,key=lambda x:x[1],reverse=False))
         max_val = sorted(adjacency_set,key=lambda x:x[1])[-1][1]
         norm_penalties = set([tuple((grid_pos[0],grid_pos[1]/max_val)) for grid_pos in adjacency_set])
         for grid_pos in norm_penalties:
@@ -130,29 +128,26 @@ class ViewController:
             y_sq = constants.MAX_Y - grid_pos[0][0] * constants.CELL_RADIUS
             val = int(grid_pos[1]*255)
             if is_adversary:
-                #self.fill_square(x_sq,y_sq,tuple((val,0,0)))
-                pass
+                self.fill_square(x_sq,y_sq,tuple((val,0,0)))
             else:
-                # self.fill_square(x_sq,y_sq,tuple((0,val,0)))
-                pass
+                self.fill_square(x_sq,y_sq,tuple((0,val,0)))
         if is_adversary:
             return (self.model.find_grid_pos(upper_left,Cell(Point(cell_x,cell_y),Point(0,0)),True), norm_penalties, origin)
         else: 
             return (raw_coords, norm_penalties)
 
     def tick(self) -> None:
-        upper_left = Point(constants.MIN_X,constants.MAX_Y)
-        #reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/np.max(self.model.r)*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/np.max(self.model.r)*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
-        max_val = np.min(self.model.r)
-        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/max_val*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/max_val*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
         """Update the model state and redraw visualization."""
+        upper_left = Point(constants.MIN_X,constants.MAX_Y)
+        max_val = max(abs(np.min(self.model.r)),np.max(self.model.r))
+        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/max_val*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/max_val*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
         start_time = time_ns() // NS_TO_MS
         self.pen.color('black')
         self.pen.width(1)
         self.model.tick()
         self.pen.clear()
-        #self.initialize_grid()
-        #self.fill_grid(reward_cmap)
+        self.initialize_grid()
+        self.fill_grid(reward_cmap)
         adv_coords = []
         adv_masks = {}
         # ADVERSARY UPDATES
@@ -170,11 +165,11 @@ class ViewController:
         # MAIN AGENT UPDATE
         for cell in self.model.population[:1]:
             self.pen.color('white')
+            self.pen.pensize(2)
             sensor_obj = self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=False, cmap=reward_cmap)
             intersections = self.model.intersect_los(sensor_obj[0],adv_coords,adv_masks)
-            # print(intersections)
             if len(intersections) == 0:
-                self.model.follow_offline_policy(cell)
+                self.model.follow_offline_policy(cell,is_random=False)
             else:
                 self.model.follow_online_policy(cell, intersections)
             self.pen.penup()
@@ -184,10 +179,13 @@ class ViewController:
             grid_pos = self.model.find_grid_pos(upper_left,cell,True)
             self.collected_rewards.append(self.model.r[grid_pos])
         self.screen.update()
-        # sleep(1)
-        if self.model.is_complete(self.model.population[0]):
+        # CHECK FOR END STATE
+        game_state = self.model.is_complete(self.model.population[0])
+        if game_state != 'continue':
+            if game_state == 'loss':
+                self.collected_rewards.append(constants.LOSS_REWARD)
             print(self.collected_rewards)
-            with open('./collected_rewards.csv', 'a') as f:
+            with open('./collected_rewards_offline_only.csv', 'a') as f:
                 f.write(str(self.collected_rewards)+'\n')
             return
         else:
