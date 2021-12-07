@@ -24,14 +24,14 @@ def create_reward_matrix(create_new):
         r[es] = END_REWARD
         r[ss] = START_REWARD
         # export reward matrix
-        with open('reward_matrix.csv', 'w') as f:
+        with open('./tmp/reward_matrix.csv', 'w') as f:
             string_elements = [[str(elem) for elem in row] for row in r]
             for row in string_elements:
                 f.write(','.join(row)+'\n')
             f.close()
     else:
         data = []
-        with open('reward_matrix.csv', 'r') as f:
+        with open('./tmp/reward_matrix.csv', 'r') as f:
             for line in f:
                 data.append(np.asarray(line.split(','),dtype=np.int64))
         r = np.asarray(data)
@@ -43,7 +43,7 @@ def create_reward_matrix(create_new):
 
 def explore(reward_matrix, n_samples):
     def export_samples(samples):
-        with open('simulation.csv', 'w') as f:
+        with open('./tmp/simulation.csv', 'w') as f:
             f.write('s,a,r,s\''+'\n')
             for s in samples:
                 f.write(','.join(s)+'\n')
