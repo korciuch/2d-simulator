@@ -1,15 +1,11 @@
 """The model classes maintain the state and logic of the simulation."""
 
 from __future__ import annotations
-from simulation import create_reward_matrix, load_policy, ACTIONS
-from q_learning import load_Q
+from src.simulation import create_reward_matrix, load_policy, ACTIONS
+from src.q_learning import load_Q
 from typing import List
-from random import random
 from projects.pj02 import constants
-from math import sin, cos, pi
 import numpy as np
-
-__author__ = ""  # TODO
 
 class Point:
     """A model of a 2-d cartesian coordinate Point."""
@@ -53,10 +49,10 @@ class Model:
     time: int = 0
     adjacency_sets: List[set()]
     r = create_reward_matrix(create_new=False)
-    Q = load_Q('q_matrix.csv')
+    Q = load_Q('./tmp/q_matrix.csv')
     actions = [(1,0), (-1,0), (0,-1), (0,1)] # down - 1, up - 2, left - 3, right - 4
     angles = [0.75,0.25,0.5,0]
-    policies = load_policy(src_file='sim.policy')
+    policies = load_policy(src_file='./tmp/sim.policy')
     sensor_angles = np.asarray(np.linspace(0,1,17))
     start_state = (constants.NUM_ROWS-1,0)
     end_state = (0,constants.NUM_COLS-1)
@@ -105,8 +101,12 @@ class Model:
 
     def random_location(self) -> Point:
         """Generate a random location."""
-        xCoord = np.random.choice([constants.MIN_X + constants.BOUNDS_WIDTH / constants.NUM_COLS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_COLS+1)])
-        yCoord = np.random.choice([constants.MIN_Y + constants.BOUNDS_HEIGHT / constants.NUM_ROWS * i + constants.CELL_RADIUS/2 for i in range(0, constants.NUM_ROWS+1)])
+        xCoord = np.random.choice([constants.MIN_X + constants.BOUNDS_WIDTH \
+            / constants.NUM_COLS * i + constants.CELL_RADIUS/2 \
+            for i in range(0, constants.NUM_COLS+1)])
+        yCoord = np.random.choice([constants.MIN_Y + constants.BOUNDS_HEIGHT \
+            / constants.NUM_ROWS * i + constants.CELL_RADIUS/2 \
+            for i in range(0, constants.NUM_ROWS+1)])
         return Point(xCoord, yCoord)
 
     def random_direction(self, speed: float) -> Point:
@@ -168,7 +168,10 @@ class Model:
                 return
             else:
                 for a in range(0,len(ACTIONS)):
-                    curr_state_index = np.ravel_multi_index(coord,(constants.NUM_ROWS,constants.NUM_COLS))
+                    curr_state_index = np.ravel_multi_index(
+                        coord,
+                        (constants.NUM_ROWS,constants.NUM_COLS)
+                    )
                     m = coord[0] + ACTIONS[a][0]
                     n = coord[1] + ACTIONS[a][1]
                     if m < 0 or n < 0: continue

@@ -22,7 +22,7 @@ def compute(infile,outfile, num_states, epochs):
     D = load_samples(infile)
     D[:,REWARD] = np.add(D[:,REWARD],1)
     Q = q_learning(data=D, alpha=0.5, gamma=0.95, num_states=num_states, epochs=epochs)
-    with open('q_matrix.csv', 'w') as f:
+    with open('./tmp/q_matrix.csv', 'w') as f:
         string_elements = [[str(elem) for elem in row] for row in Q]
         for row in string_elements:
             f.write(','.join(row)+'\n')

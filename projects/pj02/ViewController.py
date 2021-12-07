@@ -1,13 +1,11 @@
 """The ViewController drives the visualization of the simulation.""" 
 
-from math import cos
 import numpy as np
-import turtle
-from turtle import Turtle, Screen, color, done, bye, exitonclick
+from turtle import Turtle, Screen, done
 from projects.pj02.model import Cell, Model, Point
 from projects.pj02 import constants
 from typing import Any
-from time import time_ns, sleep
+from time import time_ns
 import time
 
 NS_TO_MS: int = 1000000
@@ -77,8 +75,10 @@ class ViewController:
             self.pen.goto(x_start,y_start)
             self.pen.pendown()
             self.pen.dot(constants.CELL_RADIUS/16)
-            self.pen.goto(x_start+self.model.actions[action_index][1]*constants.CELL_RADIUS/4,y_start-self.model.actions[action_index][0]*constants.CELL_RADIUS/4)
-
+            self.pen.goto(
+                x_start+self.model.actions[action_index][1]*constants.CELL_RADIUS/4,
+                y_start-self.model.actions[action_index][0]*constants.CELL_RADIUS/4
+            )
         self.screen.colormode(255)
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         for c in range(0,constants.NUM_COLS):
@@ -87,7 +87,12 @@ class ViewController:
                 delta_x = constants.BOUNDS_WIDTH / constants.NUM_COLS * c
                 delta_y = constants.BOUNDS_HEIGHT / constants.NUM_ROWS * r
                 self.fill_square(upper_left.x+delta_x,upper_left.y-delta_y,color)
-                draw_policy(upper_left.x+delta_x+constants.CELL_RADIUS/2,upper_left.y-delta_y-constants.CELL_RADIUS/2, np.ravel_multi_index((r,c),(constants.NUM_ROWS,constants.NUM_COLS)))
+                draw_policy(
+                    upper_left.x+delta_x+constants.CELL_RADIUS/2,
+                    upper_left.y-delta_y-constants.CELL_RADIUS/2, 
+                    np.ravel_multi_index((r,c),
+                    (constants.NUM_ROWS,constants.NUM_COLS))
+                )
 
     def draw_los(self, cell_x, cell_y, depth, origin_cell, is_adversary, cmap):
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
@@ -104,7 +109,7 @@ class ViewController:
 
         raw_coords = set()
         adjacency_set = set()
-        
+
         def draw_line(rad):
             self.pen.penup()
             self.pen.goto(cell_x,cell_y)
@@ -132,7 +137,15 @@ class ViewController:
             else:
                 self.fill_square(x_sq,y_sq,tuple((0,val,0)))
         if is_adversary:
-            return (self.model.find_grid_pos(upper_left,Cell(Point(cell_x,cell_y),Point(0,0)),True), norm_penalties, origin)
+            return (
+                    self.model.find_grid_pos(
+                        upper_left,
+                        Cell(Point(cell_x,cell_y),
+                        Point(0,0)),
+                        True),
+                    norm_penalties, 
+                    origin
+            )
         else: 
             return (raw_coords, norm_penalties)
 
@@ -140,7 +153,11 @@ class ViewController:
         """Update the model state and redraw visualization."""
         upper_left = Point(constants.MIN_X,constants.MAX_Y)
         max_val = max(abs(np.min(self.model.r)),np.max(self.model.r))
-        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/max_val*127+128),0,0)) if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/max_val*127+128),0)) for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+
+        reward_cmap = np.asarray([np.asarray([tuple((int(-self.model.r[m,n]/max_val*127+128),0,0)) \
+            if self.model.r[m,n] < 0 else tuple((0,int(self.model.r[m,n]/max_val*127+128),0)) \
+            for n in range(0,constants.NUM_COLS)]) for m in range(0,constants.NUM_ROWS)])
+
         start_time = time_ns() // NS_TO_MS
         self.pen.color('black')
         self.pen.width(1)
@@ -159,14 +176,27 @@ class ViewController:
             self.pen.color(cell.color())
             self.pen.color('black')
             self.pen.dot(constants.CELL_RADIUS/2)
-            obj = self.draw_los(cell.location.x,cell.location.y,depth=2, origin_cell=cell, is_adversary=True, cmap=reward_cmap)
+            obj = self.draw_los(
+                cell.location.x,
+                cell.location.y,depth=2,
+                origin_cell=cell,
+                is_adversary=True,
+                cmap=reward_cmap
+            )
             adv_coords.append(obj[0])
             adv_masks[obj[2]] = obj[1]
         # MAIN AGENT UPDATE
         for cell in self.model.population[:1]:
             self.pen.color('white')
             self.pen.pensize(2)
-            sensor_obj = self.draw_los(cell.location.x,cell.location.y,depth=3, origin_cell=cell, is_adversary=False, cmap=reward_cmap)
+            sensor_obj = self.draw_los(
+                cell.location.x,
+                cell.location.y,
+                depth=3, 
+                origin_cell=cell,
+                is_adversary=False,
+                cmap=reward_cmap
+            )
             intersections = self.model.intersect_los(sensor_obj[0],adv_coords,adv_masks)
             if len(intersections) == 0:
                 self.model.follow_offline_policy(cell,is_random=False)
@@ -185,7 +215,7 @@ class ViewController:
             if game_state == 'loss':
                 self.collected_rewards.append(constants.LOSS_REWARD)
             print(self.collected_rewards)
-            with open('./collected_rewards_offline_only.csv', 'a') as f:
+            with open('./res/collected_rewards_offline_only.csv', 'a') as f:
                 f.write(str(self.collected_rewards)+'\n')
             return
         else:
