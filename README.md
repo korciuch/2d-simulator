@@ -1,6 +1,8 @@
 # aa228 final project
 q-learning + forward search
 
+![Animation showing Q-Learning + Forward Search](https://github.com/korciuch/2d-simulator/best_iteration.gif)
+
 ## Use and Development
 ### Create Conda environment:
 > $ conda env create -f environment.yml 
